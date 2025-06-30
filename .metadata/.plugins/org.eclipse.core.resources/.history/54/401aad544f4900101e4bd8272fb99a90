@@ -1,0 +1,68 @@
+package com.Controller;
+
+import com.Model.Product;
+import com.Model.WarehouseDTO;
+import com.Service.ProductCrudService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+
+@RestController
+@RequestMapping("/api/products")
+public class ProductController {
+    @Autowired
+    ProductCrudService service;
+
+    @PostMapping("/admin/insert")
+    public ResponseEntity<String> insertProduct(@RequestBody Product product){
+
+        if(service.addProduct(product)){
+            return ResponseEntity.status(HttpStatus.CREATED).build();
+        }
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Capacity Overloaded");
+    }
+
+    @GetMapping("/workmanage/get")
+    public List<Product> getAllProducts(){
+        return service.getAllProducts();
+    }
+
+    @GetMapping("/workmanage/get/{productId}")
+    public Product getProductById(@PathVariable Long productId){
+        return service.getProductById(productId);
+    }
+    @PutMapping("/admin/update/{id}")
+    public Product update(@PathVariable Long id, @RequestBody Product product){
+        return service.updateProduct(id,product);
+    }
+    @DeleteMapping("/admin/delete/{id}")
+    public ResponseEntity<Void> deleteProductById(@PathVariable Long id){
+        service.removeProduct(id);
+        return ResponseEntity.noContent().build();
+    }
+    @PostMapping("/workmanage/dispatch/{productId}/")
+    public ResponseEntity<String> dispatch(@PathVariable Long productId, @RequestBody Product product){
+        service.dispatchProduct(productId,product);
+        return ResponseEntity.ok("Dispatched");
+    }
+
+    @GetMapping("/warehouse/{warehouseId}")
+    public List<Product> getProductsByWarehouse(@PathVariable Long warehouseId){
+        return service.getProductsByWarehouseId(warehouseId);
+    }
+
+    @GetMapping("/capacity/{warehouseId}")
+    public double capacityOccupiedByWarehouse(@PathVariable Long warehouseId){
+        return service.getWarehouseCapacityOccupied(warehouseId);
+    }
+
+    @GetMapping("/warehouses/{warehouseId}")
+    public WarehouseDTO getWarehouseById(@PathVariable Long warehouseId){
+        WarehouseDTO warehouse=service.getWarehouseById(warehouseId);
+        return warehouse;
+    }
+
+}

@@ -1,0 +1,31 @@
+package com.security;
+
+import jakarta.servlet.*;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
+
+import java.io.IOException;
+
+@Component
+public class InternalAccessFilter implements Filter {
+
+    @Value("${internal.secret}")
+    private String expectedSecret;
+
+    @Override
+    public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain)
+            throws IOException, ServletException {
+
+        HttpServletRequest httpRequest = (HttpServletRequest) request;
+        String actualSecret = httpRequest.getHeader("X-Internal-Access");
+
+        if (expectedSecret == null || !expectedSecret.equals(actualSecret)) {
+            ((HttpServletResponse) response).setStatus(HttpServletResponse.SC_FORBIDDEN);
+            return;
+        }
+
+        chain.doFilter(request, response);
+  }
+}

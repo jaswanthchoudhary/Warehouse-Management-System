@@ -1,0 +1,70 @@
+package com.Controller;
+
+import java.util.List;
+
+import com.Model.WarehouseDTO;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+//import org.springframework.web.bind.annotation.RequestParam;
+//import org.springframework.web.bind.annotation.ResponseBody;
+
+import com.Model.Employees;
+import com.ServiceImpl.EmployeeServiceImpl;
+
+@RestController
+@RequestMapping("/api/employees")
+public class EmployeeController {
+	@Autowired
+	EmployeeServiceImpl empService;
+	
+	@PostMapping("/admanage/create")
+	public Employees createEmployee(@RequestBody Employees employee) {
+		return empService.insertEmployee(employee);
+	}
+	
+	@GetMapping("/admanage/get")
+	public List<Employees> getAllEmployees() {
+		return empService.getAllEmployees();
+	}
+	
+	@GetMapping("/admanage/get/{employeeId}")
+	public Employees getEmployeeById(@PathVariable Long employeeId) {
+		return empService.getEmployeeById(employeeId);
+	}
+	
+	@GetMapping("/warehouse/{WarehouseId}")
+	public List<Employees> getEmployeeByWarehouseId(@PathVariable Long WarehouseId) {
+		return empService.getEmployeesByWarehouse(WarehouseId);
+	}
+	@PutMapping("/{employeeId}")
+	public Employees udpateEmployee(@PathVariable Long employeeId,@RequestBody Employees empUpdates) {
+		return empService.updateEmployees(employeeId, empUpdates);
+	}
+
+	@DeleteMapping("/{employeeId}")
+	public ResponseEntity<String> deleteEmployee(@PathVariable Long employeeId){
+		empService.DeleteEmployee(employeeId);
+		return ResponseEntity.status(HttpStatus.OK).body(employeeId+" deleted");
+	}
+
+	@GetMapping("/warehouses/{warehouseId}")
+	public WarehouseDTO getWarehouseById(@PathVariable Long warehouseId){
+		WarehouseDTO warehouse=empService.getWarehouseById(warehouseId);
+		return warehouse;
+	}
+
+	@GetMapping("/auth-employee/{authId}")
+	public Employees getEmployeeByAuth_Id(@PathVariable Long authId){
+		Employees emp=empService.getEmployeeByAuth_Id(authId);
+		return emp;
+	}
+
+
+	@GetMapping("/admanage/warehouses/all")
+	public List<WarehouseDTO> getAvailableWarehouses(){
+		List<WarehouseDTO> warehouses=empService.getAllWarehouses();
+		return warehouses;
+	}
+}

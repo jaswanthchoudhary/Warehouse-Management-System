@@ -1,0 +1,55 @@
+package Controller;
+
+import Model.InventoryUsers;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.web.bind.annotation.*;
+import Service.CustomUserDetailsService;
+import ServiceImpl.UserServiceImpl;
+import Util.JwtTokenUtil;
+
+@RestController
+@RequestMapping("/api-auth")
+@CrossOrigin("*")
+public class AuthController {
+    private final AuthenticationManager authenticationManager;
+    private final CustomUserDetailsService userDetailsService;
+    private final JwtTokenUtil jwtTokenUtil;
+    private final UserServiceImpl userService;
+
+    public AuthController(AuthenticationManager authenticationManager,
+                        CustomUserDetailsService userDetailsService,
+                        JwtTokenUtil jwtTokenUtil,
+                        UserServiceImpl userService) {
+        this.authenticationManager = authenticationManager;
+        this.userDetailsService = userDetailsService;
+        this.jwtTokenUtil = jwtTokenUtil;
+        this.userService = userService;
+    }
+
+    @PostMapping("/register/{auth_id}")
+    public ResponseEntity<String> registerByAuthID(@PathVariable Long auth_id, @RequestBody InventoryUsers credential) {
+        InventoryUsers savedUser = userService.registerById(auth_id, credential);
+        return savedUser != null ? 
+            ResponseEntity.ok("Saved Successfully") : 
+            ResponseEntity.badRequest().body("Failed");
+    }
+
+    @PostMapping("/login")
+    public ResponseEntity<String> login(@RequestBody InventoryUsers authRequest) throws Exception {
+        authenticate(authRequest.getUsername(), authRequest.getPassword());
+        final UserDetails userDetails = userDetailsService.loadUserByUsername(authRequest.getUsername());
+        final String token = jwtTokenUtil.generateToken(userDetails);
+        return ResponseEntity.ok(token);
+    }
+
+    private void authenticate(String username, String password) throws Exception {
+        try {
+            authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(username, password));
+        } catch (Exception e) {
+            throw new Exception("INVALID_CREDENTIALS", e);
+        }
+    }
+}
